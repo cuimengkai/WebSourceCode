@@ -13,6 +13,8 @@ in_str_del_cn = "请输入你想删除的文字：\n"
 in_str_rename_cn = "请输入重命名后的名称（自动添加后缀）：\n"
 in_order_rename_cn = "请输入后缀添加的依据（0. 默认 1. 创建时间 2. 修改时间 3. 访问时间）：\n"
 in_choose_folder_or_not_cn = "请选择是否要对此路径下的文件夹操作(对于重命名功能，不建议包含文件夹)[Y/N]:\n"
+in_str_to_replace_cn = "请输入需要被替换掉的文字：\n"
+in_str_new_cn = "请输入新的文字：\n"
 out_input_error_cn = "你的输入有误，请重新输入：\n"
 out_result_success_cn = "所有任务成功完成！"
 out_thanks_cn = "感谢你的使用，下次见^_^\n"
@@ -20,11 +22,13 @@ out_quit_info_cn = "如果你想退出程序，请输入[n/N]\n"
 out_amount_fail_cn = "次任务失败\n"
 out_no_path_error_cn = "找不到路径\n"
 out_error_happen_cn = "有错误出现\n"
+out_same_name_error_cn = "已存在同名文件！\n"
 in_choose_fun_info_cn = "请选择功能:\n" \
                      "1. 删除某个文件夹下文件名称中的特定文字\n" \
                      "2. 添加特定的文字到某个文件夹下文件名称的前面\n" \
                      "3. 添加特定的文字到某个文件夹下文件名称的后面\n" \
                      "4. 重命名某个文件夹下所有文件\n" \
+                     "5. 用新的文字替换掉某个文件夹下的特定文字\n" \
                      "n/N: 退出程序\n"
 
 
@@ -84,8 +88,12 @@ def del_file_name_str(file_path, str_to_del):
             file_name_new = file_name_new_no_type + file_type
             file_name_final = path.join(file_abspath_no_name, file_name_new)
 
-            rename(file_path, file_name_final)
-            return 1
+            try:
+                rename(file_path, file_name_final)
+                return 1
+            except OSError:
+                print(out_same_name_error_cn)
+                return 0
         else:
             print("No \"" + str_to_del + "\" in " + "\"" + file_path + "\"")
             return -1
@@ -112,8 +120,12 @@ def add_file_name_str_front(file_path, str_to_add):
             # join path and file's new name
             file_name_final = path.join(file_abspath_no_name, file_name_new)
 
-            rename(file_path, file_name_final)
-            return 1
+            try:
+                rename(file_path, file_name_final)
+                return 1
+            except OSError:
+                print(out_same_name_error_cn)
+                return 0
         else:
             print("\"" + str_to_add + "\" has existed in " + "\"" + file_path + "\"")
             return -1
@@ -143,8 +155,12 @@ def add_file_name_str_behind(file_path, str_to_add):
             # join the path and name with type
             file_name_final = path.join(file_abspath_no_name, file_name_new)
 
-            rename(file_path, file_name_final)
-            return 1
+            try:
+                rename(file_path, file_name_final)
+                return 1
+            except OSError:
+                print(out_same_name_error_cn)
+                return 0
         else:
             print("\"" + str_to_add + "\" has existed in " + "\"" + file_path + "\"")
             return -1
@@ -186,12 +202,46 @@ def folder_file_rename(folder_path, str_rename, order=0):
             file_type = path.splitext(file_path)[1]
             serial_num_convert = "(" + str(serial_num) + ")"
             file_name_new = file_abspath_no_name + str_rename + serial_num_convert + file_type
-            rename(file_path, file_name_new)
+            try:
+                rename(file_path, file_name_new)
+            except OSError:
+                print(out_same_name_error_cn)
             serial_num = serial_num + 1
             count = count + 1
         return count
     except WindowsError:
         print(out_error_happen_cn)
+
+
+def file_name_replace(file_path, str_to_replace, str_new):
+    """
+
+    :param file_path: the path of file
+    :param str_to_replace: the string to be replaced in the name of file
+    :param str_new: the new string which replace the str_to_replace
+    :return: 1: done -1: no string in name 0: error
+    """
+    try:
+        file_name_now = path.basename(file_path)
+        if str_to_replace in file_name_now:
+            file_abspath_no_name = path.dirname(file_path)
+            file_type = path.splitext(file_path)[1]
+            file_name_no_type = file_name_now.replace(file_type, "")
+            file_name_new = file_name_no_type.replace(str_to_replace, str_new)+file_type
+            file_name_final = path.join(file_abspath_no_name, file_name_new)
+
+            try:
+                rename(file_path, file_name_final)
+                return 1
+            except OSError:
+                print(out_same_name_error_cn)
+                return 0
+        else:
+            print("No \"" + str_to_replace + "\" in " + "\"" + file_path + "\"")
+            return -1
+    except WindowsError:
+        print(out_no_path_error_cn)
+        return 0
 
 
 def report_result(total_amount=0, success_amount=0):
@@ -262,6 +312,21 @@ def main_process(select):
         count = folder_file_rename(folder_path_input, str_to_rename_input, order)
         report_result(count, count)
         return 1
+
+    elif select == "5":
+        count = 0  # the number of loop
+        count_s = 0  # the number of success
+        folder_path_input = input(in_folder_path_cn)
+        str_to_replace_input = input(in_str_to_replace_cn)
+        str_new_input = input(in_str_new_cn)
+        for file_path_tmp in get_all_files_path(folder_path_input):
+            count += 1
+            is_success = file_name_replace(file_path_tmp, str_to_replace_input, str_new_input)
+            if is_success == 1:
+                count_s += 1
+        report_result(count, count_s)
+        return 1
+
     elif select == "quit" or select == "exit":
         exit(0)
 
