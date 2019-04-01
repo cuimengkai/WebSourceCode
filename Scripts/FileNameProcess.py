@@ -24,7 +24,8 @@ out_result_success_cn = "所有任务成功完成！\n"
 out_thanks_cn = "感谢你的使用，下次见^_^"
 out_quit_info_cn = "如果你想退出程序，请输入[n/N]"
 out_amount_fail_cn = "%d次任务失败"
-out_no_path_error_cn = "找不到路径"
+out_no_path_error_cn = "找不到路径\n" \
+                       "请确保输入的路径正确！"
 out_error_happen_cn = "有错误出现"
 out_same_name_error_cn = "\"%s\" 已存在同名文件！"
 in_choose_fun_info_cn = "请选择功能:\n" \
@@ -255,6 +256,20 @@ def report_result(total_amount=0, success_amount=0):
     print("-------------------------\n")
 
 
+def input_path_and_check():
+    """
+
+    :return: right folder path
+    """
+    while True:
+        folder_path_input = input(in_folder_path_cn)
+        if path.exists(in_folder_path_cn):
+            break
+        else:
+            print(out_no_path_error_cn)
+    return folder_path_input
+
+
 def main_process(select):
     """
 
@@ -265,7 +280,7 @@ def main_process(select):
     count = 0  # the number of loop
     count_s = 0  # the number of success
     if select == "1":
-        folder_path_input = input(in_folder_path_cn)
+        folder_path_input = input_path_and_check()
         str_to_del_input = input(in_str_del_cn)
         for file_path_tmp in get_all_files_path(folder_path_input):
             count = count + 1
@@ -277,7 +292,7 @@ def main_process(select):
         return 1
 
     elif select == "2":
-        folder_path_input = input(in_folder_path_cn)
+        folder_path_input = input_path_and_check()
         str_to_add_input = input(in_str_add_cn)
         for file_path_tmp in get_all_files_path(folder_path_input):
             count = count + 1
@@ -288,7 +303,7 @@ def main_process(select):
         return 1
 
     elif select == "3":
-        folder_path_input = input(in_folder_path_cn)
+        folder_path_input = input_path_and_check()
         str_to_add_input = input(in_str_add_cn)
         for file_path_tmp in get_all_files_path(folder_path_input):
             count = count + 1
@@ -299,7 +314,7 @@ def main_process(select):
         return 1
 
     elif select == "4":
-        folder_path_input = input(in_folder_path_cn)
+        folder_path_input = input_path_and_check()
         str_to_rename_input = input(in_str_rename_cn)
         order = int(input(in_order_rename_cn))
         count = folder_file_rename(folder_path_input, str_to_rename_input, order)
@@ -307,7 +322,7 @@ def main_process(select):
         return 1
 
     elif select == "5":
-        folder_path_input = input(in_folder_path_cn)
+        folder_path_input = input_path_and_check()
         str_to_replace_input = input(in_str_to_replace_cn)
         str_new_input = input(in_str_new_cn)
         for file_path_tmp in get_all_files_path(folder_path_input):
@@ -339,3 +354,5 @@ if __name__ == '__main__':
             break
         else:
             main_process(choose)
+
+
