@@ -6,6 +6,7 @@ import time
 
 out_welcome_cn = "欢迎来到RENAME!!!\n" \
                  "这个脚本可以帮助你重命名某个文件夹下的文件...\n" \
+                 "重命名命令不可撤销！请自行确认后再使用！\n" \
                  "\n" \
                  "Author: Aengus Sun | Blog: www.aengus.top\n" \
                  "-----------------------------------------"
@@ -263,11 +264,10 @@ def input_path_and_check():
     """
     while True:
         folder_path_input = input(in_folder_path_cn)
-        if path.exists(in_folder_path_cn):
-            break
+        if path.isdir(folder_path_input):
+            return folder_path_input
         else:
             print(out_no_path_error_cn)
-    return folder_path_input
 
 
 def main_process(select):
@@ -354,5 +354,3 @@ if __name__ == '__main__':
             break
         else:
             main_process(choose)
-
-
