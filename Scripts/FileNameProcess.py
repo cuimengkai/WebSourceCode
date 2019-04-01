@@ -25,6 +25,7 @@ out_result_success_cn = "所有任务成功完成！\n"
 out_thanks_cn = "感谢你的使用，下次见^_^"
 out_quit_info_cn = "如果你想退出程序，请输入[n/N]"
 out_amount_fail_cn = "%d次任务失败"
+out_mission_compete_cn = "%s 已重命名为 %s"
 out_no_path_error_cn = "找不到路径\n" \
                        "请确保输入的路径正确！"
 out_error_happen_cn = "有错误出现"
@@ -96,6 +97,7 @@ def del_file_name_str(file_path, str_to_del):
 
             try:
                 rename(file_path, file_name_final)
+                print(out_mission_compete_cn % (file_name_now, file_name_new))
                 return 1
             except OSError:
                 print(out_same_name_error_cn % file_name_now)
@@ -127,6 +129,7 @@ def add_file_name_str_front(file_path, str_to_add):
 
         try:
             rename(file_path, file_name_final)
+            print(out_mission_compete_cn % (file_name_now, file_name_new))
             return 1
         except OSError:
             print(out_same_name_error_cn % file_name_now)
@@ -158,6 +161,7 @@ def add_file_name_str_behind(file_path, str_to_add):
 
         try:
             rename(file_path, file_name_final)
+            print(out_mission_compete_cn % (file_name_now, file_name_new))
             return 1
         except OSError:
             print(out_same_name_error_cn % file_name_now)
@@ -198,10 +202,13 @@ def folder_file_rename(folder_path, str_rename, order=0):
             # because if the path user input doesn't end with "/",the error will happen
             file_abspath_no_name = path.dirname(file_path) + "/"
             file_type = path.splitext(file_path)[1]
+            file_name_now = path.basename(file_path)
             serial_num_convert = "(" + str(serial_num) + ")"
-            file_name_new = file_abspath_no_name + str_rename + serial_num_convert + file_type
+            file_name_new = str_rename + serial_num_convert + file_type
+            file_name_final = path.join(file_abspath_no_name, file_name_new)
             try:
-                rename(file_path, file_name_new)
+                rename(file_path, file_name_final)
+                print(out_mission_compete_cn % (file_name_now, file_name_new))
             except OSError:
                 print(out_same_name_error_cn % path.basename(file_path))
             serial_num = serial_num + 1
@@ -230,6 +237,7 @@ def file_name_replace(file_path, str_to_replace, str_new):
 
             try:
                 rename(file_path, file_name_final)
+                print(out_mission_compete_cn % (file_name_now, file_name_new))
                 return 1
             except OSError:
                 print(out_same_name_error_cn)
@@ -354,3 +362,5 @@ if __name__ == '__main__':
             break
         else:
             main_process(choose)
+
+
