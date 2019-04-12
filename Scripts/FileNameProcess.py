@@ -259,8 +259,23 @@ def file_name_replace(file_path, str_to_replace, str_new):
         return 0
 
 
-def rename_file_by_time(file_path, order=0):
+def rename_file_by_time_accurate(file_path, order=0):
     """
+    like function@rename_file_by_time()
+    format: YearMonthDay-HourMinuteSecond
+
+    if you want to use this function, please modify the code of main_process():
+
+    if select == "6":
+        folder_path_input = input_path_and_check()
+        order = int(input(in_order_rename_time_cn))
+        for file_path in get_all_files_path(folder_path_input, order)
+            is_success = rename_file_by_time(folder_path_input, order)
+            if is_success == 1:
+                count_s += 1
+            count += 1
+        report_result(count, count_s)
+        return 1
 
     :param file_path: file path
     :param order: 2: modify time  3: assess time other: create time
@@ -291,6 +306,54 @@ def rename_file_by_time(file_path, order=0):
     except OSError:
         print(out_no_path_error_cn)
         return 0
+
+
+def rename_file_by_time(folder_path, order):
+    """
+    rename file by create/modify/assess time
+    format: YearMonthDay-1/2/3/...
+    order = 2: modify time
+    order = 3: assess time
+    order = others: create time
+    :param folder_path: the folder of path
+    :param order: the order
+    :return: the amount of files
+    """
+    try:
+        serial_num = 1  # serial number
+        count = 0
+        if order == 2:  # the recent modify time of the files
+            list_ordered = sorted(get_all_files_path(folder_path), key=lambda file_p: path.getmtime(file_p))
+        elif order == 3:  # the recent assess time of the files
+            list_ordered = sorted(get_all_files_path(folder_path), key=lambda file_p: path.getatime(file_p))
+        else:
+            list_ordered = sorted(get_all_files_path(folder_path), key=lambda file_p: path.getctime(file_p))
+
+        for file_path in list_ordered:
+            file_type = path.splitext(file_path)[1]
+            # get a float
+            if order == 2:
+                file_time = path.getmtime(file_path)
+            elif order == 3:
+                file_time = path.getatime(file_path)
+            else:
+                file_time = path.getctime(file_path)
+            # format the time
+            # time.localtime(time): getctime()->localtime
+            file_time_format = time.strftime("%Y%m%d-", time.localtime(file_time))
+            file_name_new = str(file_time_format) + str(serial_num) + file_type
+            file_name_final = path.join(path.dirname(file_path), file_name_new)
+            try:
+                rename(file_path, file_name_final)
+            except OSError:
+                print(out_same_name_error_cn)
+            print(out_mission_compete_cn % (path.basename(file_path), file_name_new))
+            serial_num = serial_num + 1
+            count = count + 1
+        return count
+
+    except OSError:
+        print(out_error_happen_cn)
 
 
 def report_result(total_amount=0, success_amount=0):
@@ -391,12 +454,8 @@ def main_process(select):
     elif select == "6":
         folder_path_input = input_path_and_check()
         order = int(input(in_order_rename_time_cn))
-        for file_path_tmp in get_all_files_path(folder_path_input):
-            count += 1
-            is_success = rename_file_by_time(file_path_tmp, order)
-            if is_success == 1:
-                count_s += 1
-        report_result(count, count_s)
+        count = rename_file_by_time(folder_path_input, order)
+        report_result(count, count)
         return 1
 
     elif select == "quit" or select == "exit":
@@ -405,7 +464,7 @@ def main_process(select):
     else:
         print(out_input_error_cn)
         print(out_quit_info_cn)
-        print("----------------------------\n")
+        print("---------------------------------\n")
         return 0
 
 
