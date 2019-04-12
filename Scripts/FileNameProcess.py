@@ -2,6 +2,7 @@
 from os import path
 from os import listdir
 from os import rename
+import os
 import time
 
 out_welcome_cn = "欢迎来到RENAME!!!\n" \
@@ -10,11 +11,12 @@ out_welcome_cn = "欢迎来到RENAME!!!\n" \
                  "\n" \
                  "Author: Aengus Sun | Blog: www.aengus.top\n" \
                  "-----------------------------------------"
-in_folder_path_cn = "请输入文件夹路径：\n"
+in_folder_path_cn = "请输入文件夹路径（输入数字则默认为当前脚本所在目录）：\n"
 in_str_add_cn = "请输入你想添加的文字：\n"
 in_str_del_cn = "请输入你想删除的文字：\n"
 in_str_rename_cn = "请输入重命名后的名称（自动添加后缀）：\n"
-in_order_rename_cn = "请输入后缀添加的依据（0. 默认 1. 创建时间 2. 修改时间 3. 访问时间）：\n"
+in_order_rename_input_cn = "请输入后缀添加的依据（0. 默认 1. 创建时间 2. 修改时间 3. 访问时间）：\n"
+in_order_rename_time_cn = "请输入重命名规则（1. 创建时间 2. 修改时间 3. 访问时间）：\n"
 in_choose_folder_or_not_cn = "请选择是否要对此路径下的文件夹操作(对于重命名功能，不建议包含文件夹)[Y/N]:\n"
 in_str_to_replace_cn = "请输入需要被替换掉的文字：\n"
 in_str_new_cn = "请输入新的文字：\n"
@@ -30,13 +32,19 @@ out_no_path_error_cn = "找不到路径\n" \
                        "请确保输入的路径正确！"
 out_error_happen_cn = "有错误出现"
 out_same_name_error_cn = "\"%s\" 已存在同名文件！"
+out_current_path_cn = "当前工作路径为[ %s ]"
 in_choose_fun_info_cn = "请选择功能:\n" \
                      "1. 删除某个文件夹下文件名称中的特定文字\n" \
                      "2. 添加特定的文字到某个文件夹下文件名称的前面\n" \
                      "3. 添加特定的文字到某个文件夹下文件名称的后面\n" \
-                     "4. 重命名某个文件夹下所有文件\n" \
+                     "4. 用输入的文字重命名某个文件夹下所有文件（格式：输入文字(n)，n=1,2,3,...）\n" \
                      "5. 用新的文字替换掉某个文件夹下的特定文字\n" \
+                     "6. 用文件的创建/修改/访问时间重命名某个文件夹下的所有文件（格式：年月日-时分秒）\n" \
                      "n/N: 退出程序\n"
+# current path
+CURRENT_DIR = os.getcwd()
+# the path of script
+SCRIPT_PATH = path.realpath(__file__)
 
 
 def get_all_files_path(dir_path):
@@ -65,7 +73,8 @@ def get_all_files_path(dir_path):
                 all_files.append(file_path)
     except OSError:
         print(out_no_path_error_cn)
-
+    if SCRIPT_PATH in all_files:
+        all_files.remove(SCRIPT_PATH)
     return all_files
 
 
@@ -171,7 +180,7 @@ def add_file_name_str_behind(file_path, str_to_add):
         return 0
 
 
-def folder_file_rename(folder_path, str_rename, order=0):
+def rename_file_by_input(folder_path, str_rename, order=0):
     """This function can rename all the files in folder and give them a serial number.
     order = 0:The order of the serial number depends on the order of the files in explorer;
     order = 1:The order of the serial number depends on the create time of the files;
@@ -250,6 +259,40 @@ def file_name_replace(file_path, str_to_replace, str_new):
         return 0
 
 
+def rename_file_by_time(file_path, order=0):
+    """
+
+    :param file_path: file path
+    :param order: 2: modify time  3: assess time other: create time
+    :return: 1:success 0: path error -1: same name file exists
+    """
+    try:
+        file_type = path.splitext(file_path)[1]
+        # get a float
+        if order == 2:
+            file_time = path.getmtime(file_path)
+        elif order == 3:
+            file_time = path.getatime(file_path)
+        else:
+            file_time = path.getctime(file_path)
+        # format the time
+        # time.localtime(time): getctime()->localtime
+        file_time_format = time.strftime("%Y%m%d-%H%M%S", time.localtime(file_time))
+        file_name_new = str(file_time_format) + file_type
+        file_name_final = path.join(path.dirname(file_path), file_name_new)
+        try:
+            rename(file_path, file_name_final)
+            print(out_mission_compete_cn % (path.basename(file_path), file_name_new))
+            return 1
+        except OSError:
+            print(out_same_name_error_cn)
+            return -1
+
+    except OSError:
+        print(out_no_path_error_cn)
+        return 0
+
+
 def report_result(total_amount=0, success_amount=0):
     """
 
@@ -272,6 +315,10 @@ def input_path_and_check():
     """
     while True:
         folder_path_input = input(in_folder_path_cn)
+        # If user input a number,return the current folder path
+        if folder_path_input.isdigit():
+            return CURRENT_DIR
+
         if path.isdir(folder_path_input):
             return folder_path_input
         else:
@@ -324,8 +371,8 @@ def main_process(select):
     elif select == "4":
         folder_path_input = input_path_and_check()
         str_to_rename_input = input(in_str_rename_cn)
-        order = int(input(in_order_rename_cn))
-        count = folder_file_rename(folder_path_input, str_to_rename_input, order)
+        order = int(input(in_order_rename_input_cn))
+        count = rename_file_by_input(folder_path_input, str_to_rename_input, order)
         report_result(count, count)
         return 1
 
@@ -341,18 +388,30 @@ def main_process(select):
         report_result(count, count_s)
         return 1
 
+    elif select == "6":
+        folder_path_input = input_path_and_check()
+        order = int(input(in_order_rename_time_cn))
+        for file_path_tmp in get_all_files_path(folder_path_input):
+            count += 1
+            is_success = rename_file_by_time(file_path_tmp, order)
+            if is_success == 1:
+                count_s += 1
+        report_result(count, count_s)
+        return 1
+
     elif select == "quit" or select == "exit":
         exit(0)
 
     else:
         print(out_input_error_cn)
         print(out_quit_info_cn)
-        print("--------------------------\n")
+        print("----------------------------\n")
         return 0
 
 
 if __name__ == '__main__':
     print(out_welcome_cn)
+    print(out_current_path_cn % CURRENT_DIR)
 
     while True:
         choose = input(in_choose_fun_info_cn)
