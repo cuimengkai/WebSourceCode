@@ -17,7 +17,6 @@ in_str_del_cn = "请输入你想删除的文字：\n"
 in_str_rename_cn = "请输入重命名后的名称（自动添加后缀）：\n"
 in_order_rename_input_cn = "请输入后缀添加的依据（0. 默认 1. 创建时间 2. 修改时间 3. 访问时间）：\n"
 in_order_rename_time_cn = "请输入重命名规则（1. 创建时间 2. 修改时间 3. 访问时间）：\n"
-in_choose_folder_or_not_cn = "请选择是否要对此路径下的文件夹操作(对于重命名功能，不建议包含文件夹)[Y/N]:\n"
 in_str_to_replace_cn = "请输入需要被替换掉的文字：\n"
 in_str_new_cn = "请输入新的文字：\n"
 out_input_error_cn = "你的输入有误，请重新输入："
@@ -55,28 +54,21 @@ def get_all_files_path(dir_path):
     """
     all_files = []
     try:
-        while True:
-            # ch:if you want to operate the folder
-            ch = input(in_choose_folder_or_not_cn)
-            if ch == "Y" or ch == "y" or ch == "N" or ch == "n":
-                break
-            else:
-                print(out_input_error_cn)
+        if path.isfile(dir_path):
+            all_files.append(dir_path)
+            return all_files
 
         for file in listdir(dir_path):
             file_path = path.join(dir_path, file)
-            if ch == "N" or ch == "n":
-                # if it is file,add it to the list
-                if path.isfile(file_path):
-                    all_files.append(file_path)
-            elif ch == "Y" or ch == "y":
+            # if it is file,add it to the list
+            if path.isfile(file_path):
                 all_files.append(file_path)
+
     except OSError:
         print(out_no_path_error_cn)
     if SCRIPT_PATH in all_files:
         all_files.remove(SCRIPT_PATH)
     return all_files
-
 
 def del_file_name_str(file_path, str_to_del):
     """
