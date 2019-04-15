@@ -58,8 +58,8 @@ def get_all_files_path(dir_path):
             all_files.append(dir_path)
             return all_files
 
-        for file in listdir(dir_path):
-            file_path = path.join(dir_path, file)
+        for file_name in listdir(dir_path):
+            file_path = path.join(dir_path, file_name)
             # if it is file,add it to the list
             if path.isfile(file_path):
                 all_files.append(file_path)
