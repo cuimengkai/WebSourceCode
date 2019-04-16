@@ -53,16 +53,27 @@ def get_all_files_path(dir_path):
     :return: a list includes all of the abspath of files in the directory except folder
     """
     all_files = []
-    try:
+        try:
         if path.isfile(dir_path):
             all_files.append(dir_path)
             return all_files
-
-        for file_name in listdir(dir_path):
-            file_path = path.join(dir_path, file_name)
-            # if it is file,add it to the list
-            if path.isfile(file_path):
-                all_files.append(file_path)
+        while True:
+            # ch: rename folder or not 
+            ch = input(in_choose_folder_or_not_cn)
+            if ch == "Y" or ch == "y":
+                for file_name in listdir(dir_path):
+                    file_path = path.join(dir_path, file_name)
+                    all_files.append(file_path)
+                break
+            elif ch == "N" or ch == "n":
+                for file_name in listdir(dir_path):
+                    file_path = path.join(dir_path, file_name)
+                    # if it is file,add it to the list
+                    if path.isfile(file_path):
+                        all_files.append(file_path)
+                break
+            else:
+                print(out_input_error_cn)
 
     except OSError:
         print(out_no_path_error_cn)
