@@ -384,13 +384,13 @@ def rename_file_by_rule(folder_path, rule, order):
             list_ordered = sorted(get_all_files_path(folder_path), key=lambda file_p: path.getatime(file_p))
         else:
             list_ordered = get_all_files_path(folder_path)
-        comment_str = rule.replace("#", "")
+    
         for file_path in list_ordered:
             # for security，do not use "folder_path"
             # because if the path user input doesn't end with "/",the error will happen
             file_abspath_no_name = path.dirname(file_path) + "/"
             file_type = path.splitext(file_path)[1]
-            file_name_new = comment_str + str(serial_num) + file_type
+            file_name_new = rule.replace("#", str(serial_num)) + file_type
             file_name_final = path.join(file_abspath_no_name, file_name_new)
             try:
                 rename(file_path, file_name_final)
