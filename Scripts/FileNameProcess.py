@@ -19,6 +19,7 @@ in_order_rename_input_cn = "请输入后缀添加的依据（0. 默认 1. 创建
 in_order_rename_time_cn = "请输入重命名规则（1. 创建时间 2. 修改时间 3. 访问时间）：\n"
 in_str_to_replace_cn = "请输入需要被替换掉的文字：\n"
 in_str_new_cn = "请输入新的文字：\n"
+in_rule_cn = "请输入重命名的规则（“#”代表重命名后的数字，如输入：新的文件名-# 结果：新的文件名-1、新的文件名-2、...）:\n"
 out_input_error_cn = "你的输入有误，请重新输入："
 out_total_missions_times_cn = "一共进行了%d次任务"
 out_no_str_exist_cn = "文字 \"%s\" 在文件 \"%s\" 名称中不存在！"
@@ -359,6 +360,51 @@ def rename_file_by_time(folder_path, order):
         print(out_error_happen_cn)
 
 
+def rename_file_by_rule(folder_path, rule, order):
+    """
+    User input the rule of rename then script will rename files by rule, the serial number of file matches "#".
+     For example:
+     rule: New_name_#
+     new name: New_name_1  New_name_2  New_name_3 ....
+    :param folder_path: the path of folder
+    :param rule: the rule of rename
+    :param order: the rule of sort 0: default 1: create 2: modify 3: assess
+    :return: the number of files
+    """
+    try:
+        serial_num = 1  # serial number
+        count = 0
+        if order == 0:  # the order of the files in explorer
+            list_ordered = get_all_files_path(folder_path)
+        elif order == 1:  # the create time of the files
+            list_ordered = sorted(get_all_files_path(folder_path), key=lambda file_p: path.getctime(file_p))
+        elif order == 2:  # the recent modify time of the files
+            list_ordered = sorted(get_all_files_path(folder_path), key=lambda file_p: path.getmtime(file_p))
+        elif order == 3:  # the recent assess time of the files
+            list_ordered = sorted(get_all_files_path(folder_path), key=lambda file_p: path.getatime(file_p))
+        else:
+            list_ordered = get_all_files_path(folder_path)
+        comment_str = rule.replace("#", "")
+        for file_path in list_ordered:
+            # for security，do not use "folder_path"
+            # because if the path user input doesn't end with "/",the error will happen
+            file_abspath_no_name = path.dirname(file_path) + "/"
+            file_type = path.splitext(file_path)[1]
+            file_name_new = comment_str + str(serial_num) + file_type
+            file_name_final = path.join(file_abspath_no_name, file_name_new)
+            try:
+                rename(file_path, file_name_final)
+            except OSError:
+                print(out_same_name_error_cn)
+            print(out_mission_compete_cn % (path.basename(file_path), file_name_new))
+            serial_num += 1
+            count += 1
+        return count
+
+    except OSError:
+        print(out_error_happen_cn)
+        
+        
 def report_result(total_amount=0, success_amount=0):
     """
 
@@ -461,6 +507,14 @@ def main_process(select):
         report_result(count, count)
         return 1
 
+    elif select == "7":
+        folder_path_input = input_path_and_check()
+        order = int(input(in_order_rename_input_cn))
+        rule = input(in_rule_cn)
+        count = rename_file_by_rule(folder_path_input, rule, order)
+        report_result(count, count)
+        return 1
+    
     elif select == "quit" or select == "exit":
         exit(0)
 
